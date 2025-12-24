@@ -153,13 +153,30 @@ async def get_feed(
     return {"posts": posts_data, "count": len(posts_data)}
 
 
+@app.delete("/post/{post_id}")
+async def delete_post(
+    post_id: str,
+    session: AsyncSession = Depends(get_async_session)
+):
+    """Delete a post by ID"""
+    result = await session.execute(select(Post).where(Post.id == post_id))
+    post = result.scalar_one_or_none()
+    
+    if not post:
+        raise HTTPException(status_code=404, detail="Post not found")
+    
+    await session.delete(post)
+    await session.commit()
+    
+    return {"detail": "Post deleted successfully"}
 
 
 
-# @app.get("/")
-# def root():
-#     """Health check endpoint"""
-#     return {"status": "ok", "message": "FastAPI ImageKit Upload API"}
+
+@app.get("/")
+def root():
+    """Health check endpoint"""
+    return {"status": "ok", "message": "FastAPI ImageKit Upload API"}
 
 
 
